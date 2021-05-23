@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Page Title</title>
+    <style>
+      body {
+        background-color: #87CEEB;
+        text-align: center;
+        color: black;
+        font-family: garamond,serif;
+        tab-size: 4;
+      }
+
+      table, th, td {
+      	border: 1px solid black; 
+          font-family:garamond,serif;
+          font-size:16px; padding: 15px;
+        	background-color: white;
+      }
+      th {
+        font-weight: bold;
+      }
+
+      table {
+      	border-collapse: collapse;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Description of API's in Application</h1>
+    <div align='center'>
+    <table>
+      <th>API Name</th>
+      <th>Request Type</th>
+      <th>API endpoint</th>
+      <th>Description</th>
+      <th>Authorization Required</th>
+      <tr>
+      <td>Login</td>
+      <td>POST</td>
+      <td><a href="/auth/login/">/auth/login/</a></td>
+      <td>To authenticate a user and provide the access token</td>
+      <td>No</td>
+      <tr>
+      <td>Logout</td>
+      <td>GET</td>
+      <td><a href="/auth/logout/">/auth/logout/</a></td>
+      <td>To revoke an access token and log out of the session</td>
+      <td>Yes</td>
+      <tr>
+      <td>Register</td>
+      <td>POST</td>
+      <td><a href="/auth/register/">/auth/register/</a></td>
+      <td>To register an account in Application using E-mail ID and Name and user will get credentials delivered in their Email-ID</td>
+      <td>No</td>
+      <tr>
+      <td>Books And Authors</td>
+      <td>POST</td>
+      <td><a href="/add/book/author/">/add/book/author/</a></td>
+      <td>To add one or more books and authors and create a relation between them.</td>
+      <td>Yes</td>
+      <tr>
+      <td>Books and Category</td>
+      <td>POST</td>
+      <td><a href="/add/category/book/">/add/category/book/</a></td>
+      <td>To add one or more category create a relation between category and books.</td>
+      <td>Yes</td>
+      <tr>
+      <td>Books and Author Details</td>
+      <td>GET</td>
+      <td><a href="/book/detials/">/book/detials/</a></td>
+      <td>To fetch details of books along with the authors detials.</td>
+      <td>Yes</td>
+      <tr>
+      <td>Author under Category</td>
+      <td>GET</td>
+      <td><a href="/api/analytics/author/<categories_id>">/api/analytics/author/:categories_id</a></td>
+      <td>To fetch the distinct authors count under a category id provided in request.</td>
+      <td>Yes</td>
+      <tr>
+      <td>Books under Category</td>
+      <td>GET</td>
+      <td><a href="/api/analytics/books/<categories_id>">/api/analytics/books/:categories_id</a></td>
+      <td>To fetch the distinct books count under a category id provided in request.</td>
+      <td>Yes</td>
+    </table>
+    </div>
+    <br>
+    <h3 color=red>*Note for request body kindly visit the API endpoint. For every request the body has been suggested.</h3>
+  </body>
+</html>
