@@ -11,7 +11,7 @@ from oauth2_provider.models import Application, AccessToken, RefreshToken
 from rest_framework import permissions
 
 import pytz
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from .forms import UserRegisterForm
 from django.contrib.auth.models import User
@@ -21,6 +21,11 @@ import secrets
 from django.core.mail import send_mail, EmailMultiAlternatives
 
 from django.shortcuts import render
+
+from oauthlib.oauth2.rfc6749.tokens import random_token_generator
+from library.settings import OAUTH2_PROVIDER
+
+import re
 
 def home(request):
     return render(request, "home.html")
@@ -249,13 +254,27 @@ def login(request):
         if not user.is_active:
             return Response(status=401, data={'Msg': 'No longer access provided'})
 
-        url=((request.build_absolute_uri()).split('/'))[:3]
-        url="/".join(url)+'/o/token/'
-        application = Application.objects.get(name='LIBRARY')
-        payload='grant_type=password&username='+request.data['username']+'&password='+request.data['password']+'&client_id='+application.client_id+'&client_secret='+application.client_secret
-        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-        response = json.loads(requests.request("POST", url, headers=headers, data=payload).text)
-        res={'access_token' : response["access_token"]}
+        expire_seconds = OAUTH2_PROVIDER['ACCESS_TOKEN_EXPIRE_SECONDS']
+        scopes = OAUTH2_PROVIDER['SCOPES']
+        application = Application.objects.get(name="LIBRARY")
+        expires = pytz.UTC.localize(datetime.now() + timedelta(seconds=expire_seconds))
+        user=User.objects.get(username=request.data['username'])
+
+        access_token = AccessToken.objects.create(
+                user=user,
+                application=application,
+                token=random_token_generator(request),
+                expires=expires,
+                scope=scopes)
+
+        refresh_token = RefreshToken.objects.create(
+                user=user,
+                token=random_token_generator(request),
+                access_token=access_token,
+                application=application)
+
+
+        res={'access_token' : access_token.token}#response["access_token"]}
         return Response(res)
     else:
         res = serializer.errors
@@ -272,12 +291,8 @@ def logout(request):
     """
     permission_classes = [permissions.IsAuthenticated, TokenHasScope]
     try:
-        url=((request.build_absolute_uri()).split('/'))[:3]
-        url="/".join(url)+'/o/revoke_token/'
-        application = Application.objects.get(name='LIBRARY')
-        payload='token='+(request.headers['Authorization'])[7:]+'&client_id='+application.client_id+'&client_secret='+application.client_secret
-        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-        response = requests.request("POST", url, headers=headers, data=payload)
+        token1=AccessToken.objects.get(token=request.headers['Authorization'][7:])
+        token1.delete()
 
         expired_tokens=AccessToken.objects.filter(expires__lte=pytz.UTC.localize(datetime.now()))
         if len(expired_tokens):
@@ -305,6 +320,11 @@ def register(request):
     """
     if not request.data['email'] and not request.data['first_name'] and not request.data['last_name']:
         return Response(status=400, data={'msg':'Parameters missing in the POST requst.'})
+
+    regex = "^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$"
+    if not (re.search(regex, request.data['email'])):
+        return Response(status=400, data={'msg':'Provided email is not valid.'})
+
     try:
         res = {}
         same_email = User.objects.filter(email=request.data['email'])
@@ -321,9 +341,12 @@ def register(request):
             res={}
             if form.is_valid():
                 user = form.save()
+
                 
                 res['Message'] = 'Registerd Successfully'
                 res['User'] = {'Email': user.email, 'Registerd_On': user.date_joined}
+                res['username'] = user.email
+                res['password'] = password
 
                 html_message = """<html><head><title>Welcome to Sams</title></head><body><p style = "font-family:garamond,serif;font-size:16px;">Dear User,</p><p style = "font-family:garamond,serif;font-size:16px;">Thank you for registering on Library application.<br> Please find the below details of your account:</p><div align="center"><table style = "font-family:garamond,serif;font-size:16px;"><td><b>Username </b></td><td>:</td><td>{username}</td><tr><td><b>Password</b></td><td>:</td><td> {password} </b></td></table></div><p style = "font-family:garamond,serif;font-size:16px;">If you have any questions about your account, kindly contact us.</p><p style = "font-family:garamond,serif;font-size:16px;">Regards,<br><b>Team Library</b></p></body></html>""".format(username=user.email, password=password)
                 try:

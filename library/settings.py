@@ -25,7 +25,7 @@ SECRET_KEY = '0m0-shmivth&*@)hte&i%nhak4vna9*(wjw#69(p-%@jzc*bq+'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', 'testserver']
 
 
 # Application definition
@@ -44,7 +44,8 @@ INSTALLED_APPS = [
 ]
 
 OAUTH2_PROVIDER = {
-    'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'groups': 'Access to your groups'}
+    'SCOPES': {'read': 'Read scope', 'write': 'Write scope', 'groups': 'Access to your groups'},
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 36000,
 }
 
 REST_FRAMEWORK = {
@@ -136,8 +137,8 @@ USE_TZ = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = "your Email-ID"
-EMAIL_HOST_PASSWORD = "your Password"
+EMAIL_HOST_USER = "your email id"
+EMAIL_HOST_PASSWORD = "your password"
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 ACCOUNT_EMAIL_VERIFICATION = 'none'
